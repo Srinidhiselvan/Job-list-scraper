@@ -1,0 +1,76 @@
+# Install the Apify Client
+!pip install apify-client
+!pip install pandas
+import pandas as pd
+from apify_client import ApifyClient
+
+# Initialize the ApifyClient with your API token
+client = ApifyClient("apify_api_Brf2GFV5OjcYEIaYeEeBhl06gAOAEB17qBYG")
+
+# Function to run an actor and fetch results
+def run_actor_and_fetch_results(actor_id, run_input):
+    # Run the Actor and wait for it to finish
+    run = client.actor(actor_id).call(run_input=run_input)
+
+    # Fetch Actor results
+    return [item for item in client.dataset(run["defaultDatasetId"]).iterate_items()]
+
+# Define actor inputs
+actors = [
+    {
+        "actor_id": "hjMwgauUjBqelnLWA",
+        "run_input": {
+            "keyword": "Web Developer",
+            "location": "New York",
+            "limit": 5,
+        }
+    },
+    {
+        "actor_id": "hMvNSpz3JnHgl5jkh",
+        "run_input": {
+            "position": "web developer",
+            "country": "US",
+            "location": "San Francisco",
+            "maxItems": 50,
+            "parseCompanyDetails": False,
+            "saveOnlyUniqueItems": True,
+            "followApplyRedirects": False,
+        }
+    },
+    {
+        "actor_id": "t2FNNV3J6mvckgV2g",
+        "run_input": {
+            "keyword": "Software Engineer",
+            "maxItems": 20,
+            "baseUrl": "https://www.glassdoor.com",
+            "includeNoSalaryJob": False,
+            "minSalary": 0,
+            "jobType": "all",
+            "radius": "18",
+            "industryType": "ALL",
+            "domainType": "ALL",
+            "employerSizes": "ALL",
+            "applicationType": "ALL",
+            "seniorityType": "all",
+            "minRating": "0",
+            "proxy": {
+                "useApifyProxy": True,
+                "apifyProxyGroups": ["RESIDENTIAL"],
+            },
+        }
+    }
+]
+
+# Collect results from all actors
+all_results = []
+for actor in actors:
+    results = run_actor_and_fetch_results(actor["actor_id"], actor["run_input"])
+    all_results.extend(results)
+
+# Convert results to a DataFrame
+df = pd.DataFrame(all_results)
+
+# Save DataFrame to a CSV file
+df.to_csv("apify_results.csv", index=False)
+
+print("Results saved to apify_results.csv")
